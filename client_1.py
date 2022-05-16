@@ -1,7 +1,9 @@
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
+import os
 import tkinter
 from datetime import datetime
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+from tkinter import filedialog
 
 
 def recebe():
@@ -44,10 +46,23 @@ def send():
     """Lida com o envio de mensagens."""
     if destinatario.get() != "" and mensagem.get() != "":
         msg = "@" + destinatario.get() + "@" + mensagem.get()
-        destinatario.set("")  # limpa o campo do destinatário
         mensagem.set("")  # limpa o campo de mensagem
         client_socket.send(bytes(msg, "utf8"))
 
+
+def send_file():
+    """Envia arquivo"""
+    file_path = filedialog.askopenfilename()
+    file_name = file_path.split("/")[-1]
+    file_size = str(os.path.getsize(file_path))
+    msg = "@" + destinatario.get() + "@" + file_name + "@" + file_size
+    client_socket.send(bytes(msg, "utf8"))
+    with open(file_path, "rb") as f:
+        bytes_read = f.read(1024)
+        while bytes_read:
+            client_socket.send(bytes_read)
+            bytes_read = f.read(1024)
+    client_socket.send(bytes("@", "utf8"))
 
 def exit():
     """Encerrar a conexão"""
@@ -69,7 +84,7 @@ window.geometry("+450+10")  # tamanho e psocionamento
 
 campo_conversa = tkinter.Frame(window)
 remetente = tkinter.StringVar()  # declarando o tipo do campo remetente
-destinatario = tkinter.StringVar()   # declarando o tipo do campo destinatário
+destinatario = tkinter.StringVar()  # declarando o tipo do campo destinatário
 mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
 
 scrollbar = tkinter.Scrollbar(campo_conversa)
@@ -107,6 +122,14 @@ b_enviar = tkinter.Button(window, text="Enviar Mensagem", font="Ubuntu 14 bold",
 b_sair = tkinter.Button(window, text="Exit", font="Ubuntu 14 bold", fg="red", border=3, relief='groove',
                         command=exit)
 
+b_limpar_conversa = tkinter.Button(
+    window, text="Limpar Conversa", font="Ubuntu 14 bold", height=1, border=3,
+    relief="groove", fg="#483659", command=msg_list.delete(0, tkinter.END))
+
+b_enviar_arquivo = tkinter.Button(
+    window, text="Enviar Arquivo", font="Ubuntu 14 bold", height=1, border=3,
+    relief="groove", fg="#483659", command=send_file)
+
 scrollbar.grid()
 msg_list.grid(row=2, column=3)
 campo_conversa.grid(column=3)
@@ -120,9 +143,11 @@ e_remetente.grid(row=1, column=2)
 e_destinatario.grid(row=2, column=2)
 e_mensagem.grid(row=4, column=2, columnspan=6)
 
-b_enviar.grid(row=5, column=2, sticky="n")
 b_enviar_remetente.grid(row=2, column=2, sticky="n")
-b_sair.grid(row=5, column=3)
+b_enviar.grid(row=5, column=2, sticky="n")
+b_limpar_conversa.grid(row=5, column=1)
+b_enviar_arquivo.grid(row=5, column=3)
+b_sair.grid(row=5, column=4)
 
 HOST = "localhost"
 PORT = 50000
