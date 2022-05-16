@@ -1,7 +1,9 @@
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
+import os
 import tkinter
 from datetime import datetime
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+from tkinter import filedialog
 
 
 def recebe():
@@ -42,10 +44,23 @@ def send():
     """Lida com o envio de mensagens."""
     if destinatario.get() != "" and mensagem.get() != "":
         msg = "@" + destinatario.get() + "@" + mensagem.get()
-        destinatario.set("")  # limpa o campo do destinatário
         mensagem.set("")  # limpa o campo de mensagem
         client_socket.send(bytes(msg, "utf8")) # envia a mensagem
 
+
+def send_file():
+    """Envia arquivo"""
+    file_path = filedialog.askopenfilename()
+    file_name = file_path.split("/")[-1]
+    file_size = str(os.path.getsize(file_path))
+    msg = "@" + destinatario.get() + "@" + file_name + "@" + file_size
+    client_socket.send(bytes(msg, "utf8"))
+    with open(file_path, "rb") as f:
+        bytes_read = f.read(1024)
+        while bytes_read:
+            client_socket.send(bytes_read)
+            bytes_read = f.read(1024)
+    client_socket.send(bytes("@", "utf8"))
 
 def exit():
     """Encerrar a conexão"""
@@ -67,7 +82,7 @@ window.geometry("+450+10")  # tamanho e psocionamento
 
 campo_conversa = tkinter.Frame(window) # Cria o frame
 remetente = tkinter.StringVar()  # declarando o tipo do campo remetente
-destinatario = tkinter.StringVar()   # declarando o tipo do campo destinatário
+destinatario = tkinter.StringVar()  # declarando o tipo do campo destinatário
 mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
 scrollbar = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem 
 scrollbar2 = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem
