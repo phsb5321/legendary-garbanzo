@@ -1,115 +1,105 @@
-import os # Importa o módulo os
-import tkinter # Cria a janela
-from datetime import datetime # Importa o módulo datetime
-from socket import AF_INET, socket, SOCK_STREAM # Importa o módulo socket
-from threading import Thread # Importa o módulo Thread
-from tkinter import filedialog # Importa o módulo filedialog
+import os
+import tkinter
+from datetime import datetime
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+from tkinter import filedialog
 
 
 def recebe():
-    """Lida com o recebimento de mensagens"""
-    while True:  # Loop infinito
+    while True:
         try:
-            time = datetime.now()  # Pega a hora atual
-            getDatetime = time.strftime("%d/%m/%Y %H:%M:%S")  # Formata a hora atual
-            msg = client_socket.recv(1024).decode("utf8")  # Recebe a mensagem
-            msg_split = msg.split("@")  # Separa a mensagem em partes
-            window.title("Chat P2P " + remetente.get())  # Atualiza o título da janela
+            time = datetime.now()
+            getDatetime = time.strftime("%d/%m/%Y %H:%M:%S")
+            msg = client_socket.recv(1024).decode("utf8")
+            msg_split = msg.split("@")
+            window.title("Chat P2P " + remetente.get())
 
-            if msg_split[0] == "file": 
+            if msg_split[0] == "file":
                 receive_file()
 
-            if len(msg_split) > 1:  # Se a mensagem tiver mais de uma parte
-                destino = msg_split[1]  # Pega o destinatário
+            if len(msg_split) > 1:
+                destino = msg_split[1]
 
-                if destino == remetente.get():  # Se o destinatário for o remetente
-                    
-                    msg_list.insert(tkinter.END, "Remetente: " + msg_split[0])  # Insere a mensagem na lista
-                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime + " " + msg_split[2])  # Insere a mensagem na lista
-                    msg_list.insert(tkinter.END, " ")  # Insere uma linha em branco na lista
+                if destino == remetente.get():
+                    msg_list.insert(tkinter.END, "Remetente: " + msg_split[0])
+                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime + " " + msg_split[2])
+                    msg_list.insert(tkinter.END, " ")
 
-            if len(msg_split) == 1:  # Se a mensagem tiver apenas uma parte
-                msg_list.insert(tkinter.END, msg)  # Insere a mensagem na lista
-
-
-        except OSError:  # Possivelmente o cliente saiu do chat.
-            break  # Sai do loop
+            if len(msg_split) == 1:
+                msg_list.insert(tkinter.END, msg)
 
 
-def set_name():  # event is passed by binders.
-    """Lida com o recebimento do nome do remetente."""
-    msg = remetente.get()  # Pega o nome do remetente
+        except OSError:
+            break
+
+
+def set_name():
+    msg = remetente.get()
     client_socket.send(bytes(msg, "utf8"))
 
 
-def send(): # event is passed by binders.
-    """Lida com o envio de mensagens."""
-    if destinatario.get() != "" and mensagem.get() != "": # Se o destinatário e a mensagem não forem vazios
-        msg = "@" + destinatario.get() + "@" + mensagem.get() # Monta a mensagem
-        mensagem.set("")  # limpa o campo de mensagem
-        client_socket.send(bytes(msg, "utf8"))  # envia a mensagem
+def send():
+    if destinatario.get() != "" and mensagem.get() != "":
+        msg = "@" + destinatario.get() + "@" + mensagem.get()
+        mensagem.set("")
+        client_socket.send(bytes(msg, "utf8"))
 
-def send_file(): # event is passed by binders. 
-    """Envia arquivo"""
-    file_path = filedialog.askopenfilename() # Pega o caminho do arquivo
-    file_name = file_path.split("/")[-1] # Pega o nome do arquivo
-    file_size = str(os.path.getsize(file_path)) # Pega o tamanho do arquivo
-    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size # Monta a mensagem
-    client_socket.send(bytes(msg, "utf8")) # Envia a mensagem
-    with open(file_path, "rb") as f: # Abre o arquivo para leitura
-        bytes_read = f.read(1024) # Pega os bytes
-        while bytes_read: # Enquanto houver bytes
-            client_socket.send(bytes_read) # Envia os bytes
-            bytes_read = f.read(1024) # Pega os bytes
-    client_socket.send(bytes("@", "utf8")) # Envia o caracter de encerramento
-    
+
+def send_file():
+    file_path = filedialog.askopenfilename()
+    file_name = file_path.split("/")[-1]
+    file_size = str(os.path.getsize(file_path))
+    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size
+    client_socket.send(bytes(msg, "utf8"))
+    with open(file_path, "rb") as f:
+        bytes_read = f.read(1024)
+        while bytes_read:
+            client_socket.send(bytes_read)
+            bytes_read = f.read(1024)
+    client_socket.send(bytes("@", "utf8"))
 
 
 def receive_file():
-    """Recebe arquivo"""
-    file_name = filedialog.asksaveasfile() # Pega o nome do arquivo
-    file_size = client_socket.recv(1024).decode("utf8")  # Recebe o tamanho do arquivo
-    file_size = int(file_size)  # Converte o tamanho do arquivo para inteiro
-    with open(f'./files/{file_name}', "wb") as f:  # Abre o arquivo para escrita
-        while file_size > 0:  # Enquanto o tamanho do arquivo for maior que 0
-            bytes_read = client_socket.recv(1024)  # Recebe os bytes
-            if not bytes_read: break  # Se não receber nenhum byte, sai do loop
-            break  # Se não receber nenhum byte, sai do loop
-        f.write(bytes_read)  # Escreve os bytes no arquivo
-        file_size -= len(bytes_read)  # Diminui o tamanho do arquivo
-    client_socket.send(bytes("@", "utf8"))  # Envia um sinal de encerramento
-    
+    file_name = filedialog.asksaveasfile()
+    file_size = client_socket.recv(1024).decode("utf8")
+    file_size = int(file_size)
+    with open(f'./files/{file_name}', "wb") as f:
+        while file_size > 0:
+            bytes_read = client_socket.recv(1024)
+            if not bytes_read: break
+            break
+        f.write(bytes_read)
+        file_size -= len(bytes_read)
+    client_socket.send(bytes("@", "utf8"))
 
 
 def exit():
-    """Encerrar a conexão"""
-    msg = "quit"  # Envia a mensagem de encerramento
-    client_socket.send(bytes(msg, "utf8"))  # Envia a mensagem de encerramento
-    client_socket.close()  # Fecha a conexão
-    window.quit()  # Fecha a janela
+    msg = "quit"
+    client_socket.send(bytes(msg, "utf8"))
+    client_socket.close()
+    window.quit()
 
 
 def fecha():
-    """Essa funcão é chamada quando a janela é fechada"""
-    mensagem.set("quit")  # Envia a mensagem de encerramento
-    send()  # Envia a mensagem de encerramento
+    mensagem.set("quit")
+    send()
 
 
 def delete_chat():
-    """Apaga o chat"""
-    msg_list.delete(0, tkinter.END)  # Apaga a lista de mensagens
+    msg_list.delete(0, tkinter.END)
 
 
-window = tkinter.Tk()  # Cria a janela
-window.configure(bg="#ffffff")  # Configura a cor de fundo da janela
-window.geometry("+450+10")  # tamanho e psocionamento
+window = tkinter.Tk()
+window.configure(bg="#ffffff")
+window.geometry("+450+10")
 
-campo_conversa = tkinter.Frame(window)  # Cria o frame
-remetente = tkinter.StringVar()  # declarando o tipo do campo remetente
-destinatario = tkinter.StringVar()  # declarando o tipo do campo destinatário
-mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
-scrollbar = tkinter.Scrollbar(campo_conversa)  # criando a barra de rolagem
-scrollbar2 = tkinter.Scrollbar(campo_conversa)  # criando a barra de rolagem
+campo_conversa = tkinter.Frame(window)
+remetente = tkinter.StringVar()
+destinatario = tkinter.StringVar()
+mensagem = tkinter.StringVar()
+scrollbar = tkinter.Scrollbar(campo_conversa)
+scrollbar2 = tkinter.Scrollbar(campo_conversa)
 
 l_remetente = tkinter.Label(
     window,
@@ -118,7 +108,7 @@ l_remetente = tkinter.Label(
     width=11,
     height=2,
     bg="#ffffff"
-)  # criando o label do remetente
+)
 
 l_destinatario = tkinter.Label(
     window,
@@ -127,7 +117,7 @@ l_destinatario = tkinter.Label(
     width=11,
     height=2,
     bg="#ffffff"
-)  # criando o label do destinatário
+)
 
 l_mensagem = tkinter.Label(
     window,
@@ -136,7 +126,7 @@ l_mensagem = tkinter.Label(
     width=11,
     height=2,
     bg="#ffffff"
-)  # criando o label da mensagem
+)
 
 l_conversa = tkinter.Label(
     window,
@@ -144,7 +134,7 @@ l_conversa = tkinter.Label(
     font="Ubuntu 14",
     height=2,
     bg="#ffffff"
-)  # criando o label da conversa
+)
 
 msg_list = tkinter.Listbox(
     window,
@@ -154,23 +144,22 @@ msg_list = tkinter.Listbox(
     fg="#483659",
     border=2,
     yscrollcommand=scrollbar.set
-)  # criando a lista de mensagens
+)
 
 e_remetente = tkinter.Entry(
     window,
     font="Ubuntu 12 bold",
     fg="#483659",
     textvariable=remetente
-)  # criando o campo do remetente
-e_remetente.bind("<Return>", set_name)  # evento do enter
+)
+e_remetente.bind("<Return>", set_name)
 
 e_destinatario = tkinter.Entry(
     window,
     font="Ubuntu 12 bold",
     fg="#483659",
     textvariable=destinatario
-)  # criando o campo do destinatário
-
+)
 
 e_mensagem = tkinter.Entry(
     window,
@@ -178,10 +167,10 @@ e_mensagem = tkinter.Entry(
     fg="#483659",
     width=65,
     textvariable=mensagem
-)  # criando o campo da mensagem
-e_mensagem.bind("<Return>", send)  # quando aperta enter, envia a mensagem
+)
+e_mensagem.bind("<Return>", send)
 
-window.protocol("WM_DELETE_WINDOW", fecha)  # evento de fechar a janela
+window.protocol("WM_DELETE_WINDOW", fecha)
 
 b_enviar_remetente = tkinter.Button(
     window,
@@ -192,9 +181,7 @@ b_enviar_remetente = tkinter.Button(
     relief="groove",
     fg="#483659",
     command=set_name
-)  # criando o botão de enviar o remetente
-
-
+)
 
 b_enviar = tkinter.Button(
     window,
@@ -205,7 +192,7 @@ b_enviar = tkinter.Button(
     relief="groove",
     fg="#483659",
     command=send
-)  # criando o botão de enviar a mensagem
+)
 
 b_sair = tkinter.Button(
     window,
@@ -215,7 +202,7 @@ b_sair = tkinter.Button(
     border=3,
     relief='groove',
     command=exit
-)  # criando o botão de encerrar a conexão
+)
 
 b_enviar_arquivo = tkinter.Button(
     window,
@@ -226,7 +213,7 @@ b_enviar_arquivo = tkinter.Button(
     relief="groove",
     fg="#483659",
     command=send_file
-)  # criando o botão de enviar arquivo
+)
 
 b_limpar_conversa = tkinter.Button(
     window,
@@ -237,40 +224,40 @@ b_limpar_conversa = tkinter.Button(
     relief="groove",
     fg="#483659",
     command=delete_chat
-)  # criando o botão de limpar a conversa
+)
 
-scrollbar.grid()  # posiciona a barra de rolagem
-msg_list.grid(row=2, column=3)  # posiciona a lista de mensagens
-campo_conversa.grid(column=3)  # posiciona o frame
+scrollbar.grid()
+msg_list.grid(row=2, column=3)
+campo_conversa.grid(column=3)
 
-l_remetente.grid(row=1, column=1, sticky="n")  # posiciona o label do remetente
-l_destinatario.grid(row=2, column=1)  # posiciona o label do destinatário
-l_mensagem.grid(row=4, column=1)  # posiciona o label da mensagem
-l_conversa.grid(row=1, column=3)  # posiciona o label da conversa
+l_remetente.grid(row=1, column=1, sticky="n")
+l_destinatario.grid(row=2, column=1)
+l_mensagem.grid(row=4, column=1)
+l_conversa.grid(row=1, column=3)
 
-e_remetente.grid(row=1, column=2)  # posiciona o campo do remetente
-e_destinatario.grid(row=2, column=2)  # posiciona o campo do destinatário
-e_mensagem.grid(row=4, column=2, columnspan=6)  # posiciona o campo da mensagem
+e_remetente.grid(row=1, column=2)
+e_destinatario.grid(row=2, column=2)
+e_mensagem.grid(row=4, column=2, columnspan=6)
 
-b_enviar.grid(row=5, column=2, sticky="n")  # posiciona o botão de enviar a mensagem
-b_enviar_remetente.grid(row=2, column=2, sticky="n")  # posiciona o botão de enviar o remetente
-b_sair.grid(row=5, column=3)  # posiciona o botão de encerrar a conexão
-b_enviar_arquivo.grid(row=5, column=1)  # posiciona o botão de enviar arquivo
-b_limpar_conversa.grid(row=5, column=4)  # posiciona o botão de limpar a conversa
+b_enviar.grid(row=5, column=2, sticky="n")
+b_enviar_remetente.grid(row=2, column=2, sticky="n")
+b_sair.grid(row=5, column=3)
+b_enviar_arquivo.grid(row=5, column=1)
+b_limpar_conversa.grid(row=5, column=4)
 
-HOST = "localhost"  # endereço do servidor
-PORT = 3000  # porta do servidor
+HOST = "localhost"
+PORT = 3000
 if not PORT:
-    PORT = 3000  # porta do servidor
+    PORT = 3000
 else:
-    PORT = int(PORT)  # porta do servidor
+    PORT = int(PORT)
 
-ADDR = (HOST, PORT)  # endereço do servidor
+ADDR = (HOST, PORT)
 
-client_socket = socket(AF_INET, SOCK_STREAM)  # criando o socket
-client_socket.connect(ADDR)  # conectando ao servidor
+client_socket = socket(AF_INET, SOCK_STREAM)
+client_socket.connect(ADDR)
 
-receive_thread = Thread(target=recebe)  # criando a thread de recebimento
-receive_thread.start()  # iniciando a thread de recebimento
-"""início da execucão da interface"""
-window.mainloop()  # loop da interface
+receive_thread = Thread(target=recebe)
+receive_thread.start()
+
+window.mainloop()
