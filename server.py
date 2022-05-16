@@ -62,7 +62,7 @@ enderecos = {}  # Dicionário responsável por armazenar os enderecos
 HOST = "localhost"
 
 """Definindo número de porta"""
-PORT = 50000
+PORT = 3000
 
 ADDR = (HOST, PORT)     # Constante que armazena meu endereco e número de porta
 

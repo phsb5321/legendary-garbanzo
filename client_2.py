@@ -1,7 +1,9 @@
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
+import os
 import tkinter
 from datetime import datetime
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+from tkinter import filedialog
 
 
 def recebe():
@@ -13,6 +15,9 @@ def recebe():
             msg = client_socket.recv(1024).decode("utf8") # Recebe a mensagem
             msg_split = msg.split("@") # Separa a mensagem em partes
             window.title("Chat P2P " + remetente.get()) # Atualiza o título da janela
+
+            if msg_split[0] == "file":
+                receive_file()
             
             if len(msg_split) > 1: # Se a mensagem tiver mais de uma parte
                 destino = msg_split[1] # Pega o destinatário
@@ -42,10 +47,37 @@ def send():
     """Lida com o envio de mensagens."""
     if destinatario.get() != "" and mensagem.get() != "":
         msg = "@" + destinatario.get() + "@" + mensagem.get()
-        destinatario.set("")  # limpa o campo do destinatário
         mensagem.set("")  # limpa o campo de mensagem
         client_socket.send(bytes(msg, "utf8")) # envia a mensagem
 
+
+def send_file():
+    """Envia arquivo"""
+    file_path = filedialog.askopenfilename()
+    file_name = file_path.split("/")[-1]
+    file_size = str(os.path.getsize(file_path))
+    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size
+    client_socket.send(bytes(msg, "utf8"))
+    with open(file_path, "rb") as f:
+        bytes_read = f.read(1024)
+        while bytes_read:
+            client_socket.send(bytes_read)
+            bytes_read = f.read(1024)
+    client_socket.send(bytes("@", "utf8"))
+
+def receive_file():
+    """Recebe arquivo"""
+    file_name = client_socket.recv(1024).decode("utf8")
+    file_size = client_socket.recv(1024).decode("utf8")
+    file_size = int(file_size)
+    with open(file_name, "wb") as f:
+        while file_size > 0:
+            bytes_read = client_socket.recv(1024)
+            if not bytes_read:
+                break
+            f.write(bytes_read)
+            file_size -= len(bytes_read)
+    client_socket.send(bytes("@", "utf8"))
 
 def exit():
     """Encerrar a conexão"""
@@ -67,7 +99,7 @@ window.geometry("+450+10")  # tamanho e psocionamento
 
 campo_conversa = tkinter.Frame(window) # Cria o frame
 remetente = tkinter.StringVar()  # declarando o tipo do campo remetente
-destinatario = tkinter.StringVar()   # declarando o tipo do campo destinatário
+destinatario = tkinter.StringVar()  # declarando o tipo do campo destinatário
 mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
 scrollbar = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem 
 scrollbar2 = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem
@@ -114,7 +146,7 @@ msg_list = tkinter.Listbox(
     font="Ubuntu 12 bold", 
     fg="#483659", 
     border=2,
-    yscrollcommand=scrollbar.set
+    yscrollcommand=scrollbar.set,
     ) # criando a lista de mensagens
 
 e_remetente = tkinter.Entry(
@@ -176,6 +208,28 @@ b_sair = tkinter.Button(
     command=exit
     ) # criando o botão de encerrar a conexão
 
+b_enviar_arquivo = tkinter.Button(
+    window,
+    text="Enviar Arquivo",
+    font="Ubuntu 14 bold",
+    height=1,
+    border=3,
+    relief="groove",
+    fg="#483659",
+    command=send_file
+    ) # criando o botão de enviar arquivo
+
+b_limpar_conversa = tkinter.Button(
+    window,
+    text="Limpar Conversa",
+    font="Ubuntu 14 bold",
+    height=1,
+    border=3,
+    relief="groove",
+    fg="#483659",
+    command=msg_list.delete(0, tkinter.END)
+    ) # criando o botão de limpar a conversa
+
 scrollbar.grid() # posiciona a barra de rolagem
 msg_list.grid(row=2, column=3) # posiciona a lista de mensagens
 campo_conversa.grid(column=3) # posiciona o frame
@@ -192,10 +246,12 @@ e_mensagem.grid(row=4, column=2, columnspan=6) # posiciona o campo da mensagem
 b_enviar.grid(row=5, column=2, sticky="n") # posiciona o botão de enviar a mensagem
 b_enviar_remetente.grid(row=2, column=2, sticky="n") # posiciona o botão de enviar o remetente
 b_sair.grid(row=5, column=3) # posiciona o botão de encerrar a conexão
+b_enviar_arquivo.grid(row=5, column=1) # posiciona o botão de enviar arquivo
+b_limpar_conversa.grid(row=5, column=4) # posiciona o botão de limpar a conversa
 
 HOST = "localhost" # endereço do servidor
-PORT = 50000 # porta do servidor
-if not PORT: PORT = 50000 # porta do servidor
+PORT = 3000 # porta do servidor
+if not PORT: PORT = 3000 # porta do servidor
 else: PORT = int(PORT) # porta do servidor
 
 ADDR = (HOST, PORT) # endereço do servidor

@@ -15,6 +15,8 @@ def recebe():
             msg = client_socket.recv(1024).decode("utf8") # Recebe a mensagem
             msg_split = msg.split("@") # Separa a mensagem em partes
             window.title("Chat P2P " + remetente.get()) # Atualiza o título da janela
+
+            if msg_split[0] == "file": receive_file()
             
             if len(msg_split) > 1: # Se a mensagem tiver mais de uma parte
                 destino = msg_split[1] # Pega o destinatário
@@ -53,13 +55,27 @@ def send_file():
     file_path = filedialog.askopenfilename()
     file_name = file_path.split("/")[-1]
     file_size = str(os.path.getsize(file_path))
-    msg = "@" + destinatario.get() + "@" + file_name + "@" + file_size
+    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size
     client_socket.send(bytes(msg, "utf8"))
     with open(file_path, "rb") as f:
         bytes_read = f.read(1024)
         while bytes_read:
             client_socket.send(bytes_read)
             bytes_read = f.read(1024)
+    client_socket.send(bytes("@", "utf8"))
+
+def receive_file():
+    """Recebe arquivo"""
+    file_name = client_socket.recv(1024).decode("utf8")
+    file_size = client_socket.recv(1024).decode("utf8")
+    file_size = int(file_size)
+    with open(file_name, "wb") as f:
+        while file_size > 0:
+            bytes_read = client_socket.recv(1024)
+            if not bytes_read:
+                break
+            f.write(bytes_read)
+            file_size -= len(bytes_read)
     client_socket.send(bytes("@", "utf8"))
 
 def exit():
@@ -233,8 +249,8 @@ b_enviar_arquivo.grid(row=5, column=1) # posiciona o botão de enviar arquivo
 b_limpar_conversa.grid(row=5, column=4) # posiciona o botão de limpar a conversa
 
 HOST = "localhost" # endereço do servidor
-PORT = 50000 # porta do servidor
-if not PORT: PORT = 50000 # porta do servidor
+PORT = 3000 # porta do servidor
+if not PORT: PORT = 3000 # porta do servidor
 else: PORT = int(PORT) # porta do servidor
 
 ADDR = (HOST, PORT) # endereço do servidor
