@@ -1,9 +1,9 @@
-import os
-import tkinter
-from datetime import datetime
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
-from tkinter import filedialog
+import os # Importa o módulo os
+import tkinter # Cria a janela
+from datetime import datetime # Importa o módulo datetime
+from socket import AF_INET, socket, SOCK_STREAM # Importa o módulo socket
+from threading import Thread # Importa o módulo Thread
+from tkinter import filedialog # Importa o módulo filedialog
 
 
 def recebe():
@@ -42,26 +42,27 @@ def set_name():  # event is passed by binders.
     client_socket.send(bytes(msg, "utf8"))
 
 
-def send():
+def send(): # event is passed by binders.
     """Lida com o envio de mensagens."""
-    if destinatario.get() != "" and mensagem.get() != "":
-        msg = "@" + destinatario.get() + "@" + mensagem.get()
+    if destinatario.get() != "" and mensagem.get() != "": # Se o destinatário e a mensagem não forem vazios
+        msg = "@" + destinatario.get() + "@" + mensagem.get() # Monta a mensagem
         mensagem.set("")  # limpa o campo de mensagem
         client_socket.send(bytes(msg, "utf8"))  # envia a mensagem
 
-def send_file():
+def send_file(): # event is passed by binders. 
     """Envia arquivo"""
-    file_path = filedialog.askopenfilename()
-    file_name = file_path.split("/")[-1]
-    file_size = str(os.path.getsize(file_path))
-    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size
-    client_socket.send(bytes(msg, "utf8"))
-    with open(file_path, "rb") as f:
-        bytes_read = f.read(1024)
-        while bytes_read:
-            client_socket.send(bytes_read)
-            bytes_read = f.read(1024)
-    client_socket.send(bytes("@", "utf8"))
+    file_path = filedialog.askopenfilename() # Pega o caminho do arquivo
+    file_name = file_path.split("/")[-1] # Pega o nome do arquivo
+    file_size = str(os.path.getsize(file_path)) # Pega o tamanho do arquivo
+    msg = "file @" + destinatario.get() + "@" + file_name + "@" + file_size # Monta a mensagem
+    client_socket.send(bytes(msg, "utf8")) # Envia a mensagem
+    with open(file_path, "rb") as f: # Abre o arquivo para leitura
+        bytes_read = f.read(1024) # Pega os bytes
+        while bytes_read: # Enquanto houver bytes
+            client_socket.send(bytes_read) # Envia os bytes
+            bytes_read = f.read(1024) # Pega os bytes
+    client_socket.send(bytes("@", "utf8")) # Envia o caracter de encerramento
+    
 
 
 def receive_file():
@@ -69,7 +70,7 @@ def receive_file():
     file_name = filedialog.asksaveasfile() # Pega o nome do arquivo
     file_size = client_socket.recv(1024).decode("utf8")  # Recebe o tamanho do arquivo
     file_size = int(file_size)  # Converte o tamanho do arquivo para inteiro
-    with open(file_name, "wb") as f:  # Abre o arquivo para escrita
+    with open(f'./files/{file_name}', "wb") as f:  # Abre o arquivo para escrita
         while file_size > 0:  # Enquanto o tamanho do arquivo for maior que 0
             bytes_read = client_socket.recv(1024)  # Recebe os bytes
             if not bytes_read: break  # Se não receber nenhum byte, sai do loop
@@ -192,6 +193,8 @@ b_enviar_remetente = tkinter.Button(
     fg="#483659",
     command=set_name
 )  # criando o botão de enviar o remetente
+
+
 
 b_enviar = tkinter.Button(
     window,
