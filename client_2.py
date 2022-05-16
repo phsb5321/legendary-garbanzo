@@ -6,37 +6,35 @@ from datetime import datetime
 
 def recebe():
     """Lida com o recebimento de mensagens"""
-    while True:
+    while True: # Loop infinito
         try:
-            time = datetime.now()
-            getDatetime = time.strftime("%d/%m/%Y %H:%M:%S")
-            msg = client_socket.recv(1024).decode("utf8")
-            msg_split = msg.split("@")
-            window.title("Chat P2P " + remetente.get())
-
-            print(msg_split)
-            if len(msg_split) > 1:
-                destino = msg_split[1]
-                print(destino)
-                if destino == remetente.get():
-                    print(msg_split)
-                    msg_list.insert(tkinter.END, "Remetente: " + msg_split[0])
+            time = datetime.now() # Pega a hora atual
+            getDatetime = time.strftime("%d/%m/%Y %H:%M:%S") # Formata a hora atual
+            msg = client_socket.recv(1024).decode("utf8") # Recebe a mensagem
+            msg_split = msg.split("@") # Separa a mensagem em partes
+            window.title("Chat P2P " + remetente.get()) # Atualiza o título da janela
+            
+            if len(msg_split) > 1: # Se a mensagem tiver mais de uma parte
+                destino = msg_split[1] # Pega o destinatário
+                
+                if destino == remetente.get(): # Se o destinatário for o remetente
+                    
+                    msg_list.insert(tkinter.END, "Remetente: " + msg_split[0]) # Insere a mensagem na lista
                     msg_list.insert(tkinter.END, "Mensagem: " + getDatetime
-                                    + " " + msg_split[2])
-                    msg_list.insert(tkinter.END, " ")
+                                    + " " + msg_split[2]) # Insere a mensagem na lista
+                    msg_list.insert(tkinter.END, " ") # Insere uma linha em branco na lista
 
-            if len(msg_split) == 1:
-                msg_list.insert(tkinter.END, msg)
-                print(msg)
+            if len(msg_split) == 1: # Se a mensagem tiver apenas uma parte
+                msg_list.insert(tkinter.END, msg) # Insere a mensagem na lista
+                
 
         except OSError:  # Possivelmente o cliente saiu do chat.
-            break
+            break # Sai do loop
 
 
 def set_name():  # event is passed by binders.
     """Lida com o recebimento do nome do remetente."""
-    msg = remetente.get()
-    print(msg)
+    msg = remetente.get() # Pega o nome do remetente
     client_socket.send(bytes(msg, "utf8"))
 
 
@@ -46,98 +44,166 @@ def send():
         msg = "@" + destinatario.get() + "@" + mensagem.get()
         destinatario.set("")  # limpa o campo do destinatário
         mensagem.set("")  # limpa o campo de mensagem
-        client_socket.send(bytes(msg, "utf8"))
+        client_socket.send(bytes(msg, "utf8")) # envia a mensagem
 
 
 def exit():
     """Encerrar a conexão"""
-    msg = "quit"
-    client_socket.send(bytes(msg, "utf8"))
-    client_socket.close()
-    window.quit()
+    msg = "quit" # Envia a mensagem de encerramento
+    client_socket.send(bytes(msg, "utf8")) # Envia a mensagem de encerramento
+    client_socket.close() # Fecha a conexão
+    window.quit() # Fecha a janela
 
 
 def fecha():
     """Essa funcão é chamada quando a janela é fechada"""
-    mensagem.set("quit")
-    send()
+    mensagem.set("quit") # Envia a mensagem de encerramento
+    send() # Envia a mensagem de encerramento
 
 
-window = tkinter.Tk()
-window.configure(bg="#ffffff")
+window = tkinter.Tk() # Cria a janela
+window.configure(bg="#ffffff") # Configura a cor de fundo da janela
 window.geometry("+450+10")  # tamanho e psocionamento
 
-campo_conversa = tkinter.Frame(window)
+campo_conversa = tkinter.Frame(window) # Cria o frame
 remetente = tkinter.StringVar()  # declarando o tipo do campo remetente
 destinatario = tkinter.StringVar()   # declarando o tipo do campo destinatário
 mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
-
-scrollbar = tkinter.Scrollbar(campo_conversa)
-scrollbar2 = tkinter.Scrollbar(campo_conversa)
+scrollbar = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem 
+scrollbar2 = tkinter.Scrollbar(campo_conversa) # criando a barra de rolagem
 
 l_remetente = tkinter.Label(
-    window, text="   Remetente:", font="Ubuntu 14", width=11, height=2, bg="#ffffff")
+    window, 
+    text="   Remetente:", 
+    font="Ubuntu 14", 
+    width=11, 
+    height=2, 
+    bg="#ffffff"
+    ) # criando o label do remetente
+
 l_destinatario = tkinter.Label(
-    window, text=" Destinatário:", font="Ubuntu 14", width=11, height=2, bg="#ffffff")
+    window, 
+    text=" Destinatário:", 
+    font="Ubuntu 14", 
+    width=11, 
+    height=2, 
+    bg="#ffffff"
+    ) # criando o label do destinatário
 
-l_mensagem = tkinter.Label(window, text="   Mensagem:",
-                           font="Ubuntu 14", width=11, height=2, bg="#ffffff")
+l_mensagem = tkinter.Label(
+    window, 
+    text="   Mensagem:",
+    font="Ubuntu 14", 
+    width=11, 
+    height=2, 
+    bg="#ffffff"
+    ) # criando o label da mensagem
 
-l_conversa = tkinter.Label(window, text=" Conversa: ",
-                           font="Ubuntu 14", height=2, bg="#ffffff")
+l_conversa = tkinter.Label(
+    window, 
+    text=" Conversa: ",
+    font="Ubuntu 14", 
+    height=2, 
+    bg="#ffffff"
+    ) # criando o label da conversa
 
-msg_list = tkinter.Listbox(window, height=11, width=38, font="Ubuntu 12 bold", fg="#483659", border=2,
-                           yscrollcommand=scrollbar.set)
+msg_list = tkinter.Listbox(
+    window, 
+    height=11, 
+    width=38, 
+    font="Ubuntu 12 bold", 
+    fg="#483659", 
+    border=2,
+    yscrollcommand=scrollbar.set
+    ) # criando a lista de mensagens
 
 e_remetente = tkinter.Entry(
-    window, font="Ubuntu 12 bold", fg="#483659", textvariable=remetente)
-e_remetente.bind("<Return>", )
+    window, 
+    font="Ubuntu 12 bold", 
+    fg="#483659", 
+    textvariable=remetente
+    ) # criando o campo do remetente
+
+e_remetente.bind("<Return>", ) # evento do enter
 e_destinatario = tkinter.Entry(
-    window, font="Ubuntu 12 bold", fg="#483659", textvariable=destinatario)
-e_destinatario.bind("<Return>", )
+    window, 
+    font="Ubuntu 12 bold", 
+    fg="#483659", 
+    textvariable=destinatario
+    ) # criando o campo do destinatário
+
+e_destinatario.bind("<Return>", ) # evento do enter
 e_mensagem = tkinter.Entry(
-    window, font="Ubuntu 12 bold", fg="#483659", width=65, textvariable=mensagem)
-e_mensagem.bind("<Return>", )
+    window, 
+    font="Ubuntu 12 bold", 
+    fg="#483659", 
+    width=65, 
+    textvariable=mensagem
+    ) # criando o campo da mensagem
 
-window.protocol("WM_DELETE_WINDOW", fecha)
+e_mensagem.bind("<Return>", ) # evento do enter
+window.protocol("WM_DELETE_WINDOW", fecha) # evento de fechar a janela
 
-b_enviar_remetente = tkinter.Button(window, text="    Enviar    ", font="Ubuntu 14 bold", height=1, border=3,
-                                    relief="groove", fg="#483659", command=set_name)
-b_enviar = tkinter.Button(window, text="Enviar Mensagem", font="Ubuntu 14 bold", height=1, border=3,
-                          relief="groove", fg="#483659", command=send)
-b_sair = tkinter.Button(window, text="Exit", font="Ubuntu 14 bold", fg="red", border=3, relief='groove',
-                        command=exit)
+b_enviar_remetente = tkinter.Button(
+    window, 
+    text="    Enviar    ", 
+    font="Ubuntu 14 bold", 
+    height=1, 
+    border=3,
+    relief="groove", 
+    fg="#483659", 
+    command=set_name
+    )  # criando o botão de enviar o remetente
 
-scrollbar.grid()
-msg_list.grid(row=2, column=3)
-campo_conversa.grid(column=3)
+b_enviar = tkinter.Button(
+    window, 
+    text="Enviar Mensagem", 
+    font="Ubuntu 14 bold", 
+    height=1, 
+    border=3,
+    relief="groove", 
+    fg="#483659", 
+    command=send
+    ) # criando o botão de enviar a mensagem
 
-l_remetente.grid(row=1, column=1, sticky="n")
-l_destinatario.grid(row=2, column=1)
-l_mensagem.grid(row=4, column=1)
-l_conversa.grid(row=1, column=3)
+b_sair = tkinter.Button(
+    window, 
+    text="Exit", 
+    font="Ubuntu 14 bold", 
+    fg="red", 
+    border=3, 
+    relief='groove',
+    command=exit
+    ) # criando o botão de encerrar a conexão
 
-e_remetente.grid(row=1, column=2)
-e_destinatario.grid(row=2, column=2)
-e_mensagem.grid(row=4, column=2, columnspan=6)
+scrollbar.grid() # posiciona a barra de rolagem
+msg_list.grid(row=2, column=3) # posiciona a lista de mensagens
+campo_conversa.grid(column=3) # posiciona o frame
 
-b_enviar.grid(row=5, column=2, sticky="n")
-b_enviar_remetente.grid(row=2, column=2, sticky="n")
-b_sair.grid(row=5, column=3)
+l_remetente.grid(row=1, column=1, sticky="n") # posiciona o label do remetente
+l_destinatario.grid(row=2, column=1) # posiciona o label do destinatário 
+l_mensagem.grid(row=4, column=1) # posiciona o label da mensagem
+l_conversa.grid(row=1, column=3) # posiciona o label da conversa
+ 
+e_remetente.grid(row=1, column=2) # posiciona o campo do remetente
+e_destinatario.grid(row=2, column=2) # posiciona o campo do destinatário
+e_mensagem.grid(row=4, column=2, columnspan=6) # posiciona o campo da mensagem
 
-HOST = "localhost"
-PORT = 50000
-if not PORT:
-    PORT = 50000
-else:
-    PORT = int(PORT)
+b_enviar.grid(row=5, column=2, sticky="n") # posiciona o botão de enviar a mensagem
+b_enviar_remetente.grid(row=2, column=2, sticky="n") # posiciona o botão de enviar o remetente
+b_sair.grid(row=5, column=3) # posiciona o botão de encerrar a conexão
 
-ADDR = (HOST, PORT)
+HOST = "localhost" # endereço do servidor
+PORT = 50000 # porta do servidor
+if not PORT: PORT = 50000 # porta do servidor
+else: PORT = int(PORT) # porta do servidor
 
-client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect(ADDR)
+ADDR = (HOST, PORT) # endereço do servidor
 
-receive_thread = Thread(target=recebe)
-receive_thread.start()
+client_socket = socket(AF_INET, SOCK_STREAM) # criando o socket
+client_socket.connect(ADDR) # conectando ao servidor
+
+receive_thread = Thread(target=recebe) # criando a thread de recebimento
+receive_thread.start() # iniciando a thread de recebimento
 """início da execucão da interface"""
-window.mainloop()
+window.mainloop() # loop da interface
