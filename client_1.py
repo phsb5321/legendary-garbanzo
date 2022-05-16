@@ -16,16 +16,16 @@ def recebe():
             msg_split = msg.split("@")  # Separa a mensagem em partes
             window.title("Chat P2P " + remetente.get())  # Atualiza o título da janela
 
-            if msg_split[0] == "file": receive_file()
+            if msg_split[0] == "file": 
+                receive_file()
 
             if len(msg_split) > 1:  # Se a mensagem tiver mais de uma parte
                 destino = msg_split[1]  # Pega o destinatário
 
                 if destino == remetente.get():  # Se o destinatário for o remetente
-
+                    
                     msg_list.insert(tkinter.END, "Remetente: " + msg_split[0])  # Insere a mensagem na lista
-                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime
-                                    + " " + msg_split[2])  # Insere a mensagem na lista
+                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime + " " + msg_split[2])  # Insere a mensagem na lista
                     msg_list.insert(tkinter.END, " ")  # Insere uma linha em branco na lista
 
             if len(msg_split) == 1:  # Se a mensagem tiver apenas uma parte
@@ -64,7 +64,6 @@ def send_file():
     client_socket.send(bytes("@", "utf8"))
 
 
-
 def receive_file():
     """Recebe arquivo"""
     file_name = filedialog.asksaveasfile() # Pega o nome do arquivo
@@ -80,6 +79,7 @@ def receive_file():
     client_socket.send(bytes("@", "utf8"))  # Envia um sinal de encerramento
     
 
+
 def exit():
     """Encerrar a conexão"""
     msg = "quit"  # Envia a mensagem de encerramento
@@ -94,6 +94,11 @@ def fecha():
     send()  # Envia a mensagem de encerramento
 
 
+def delete_chat():
+    """Apaga o chat"""
+    msg_list.delete(0, tkinter.END)  # Apaga a lista de mensagens
+
+
 window = tkinter.Tk()  # Cria a janela
 window.configure(bg="#ffffff")  # Configura a cor de fundo da janela
 window.geometry("+450+10")  # tamanho e psocionamento
@@ -104,8 +109,6 @@ destinatario = tkinter.StringVar()  # declarando o tipo do campo destinatário
 mensagem = tkinter.StringVar()  # declarando o tipo do campo mensagem
 scrollbar = tkinter.Scrollbar(campo_conversa)  # criando a barra de rolagem
 scrollbar2 = tkinter.Scrollbar(campo_conversa)  # criando a barra de rolagem
-
-
 
 l_remetente = tkinter.Label(
     window,
@@ -167,6 +170,7 @@ e_destinatario = tkinter.Entry(
     textvariable=destinatario
 )  # criando o campo do destinatário
 
+
 e_mensagem = tkinter.Entry(
     window,
     font="Ubuntu 12 bold",
@@ -174,7 +178,7 @@ e_mensagem = tkinter.Entry(
     width=65,
     textvariable=mensagem
 )  # criando o campo da mensagem
-e_mensagem.bind("<Return>", send)  # evento do enter
+e_mensagem.bind("<Return>", send)  # quando aperta enter, envia a mensagem
 
 window.protocol("WM_DELETE_WINDOW", fecha)  # evento de fechar a janela
 
@@ -229,7 +233,7 @@ b_limpar_conversa = tkinter.Button(
     border=3,
     relief="groove",
     fg="#483659",
-    command=msg_list.delete(0, tkinter.END)
+    command=delete_chat
 )  # criando o botão de limpar a conversa
 
 scrollbar.grid()  # posiciona a barra de rolagem

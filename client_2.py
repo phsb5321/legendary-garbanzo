@@ -16,16 +16,16 @@ def recebe():
             msg_split = msg.split("@")  # Separa a mensagem em partes
             window.title("Chat P2P " + remetente.get())  # Atualiza o título da janela
 
-            if msg_split[0] == "file": receive_file()
+            if msg_split[0] == "file": 
+                receive_file()
 
             if len(msg_split) > 1:  # Se a mensagem tiver mais de uma parte
                 destino = msg_split[1]  # Pega o destinatário
 
                 if destino == remetente.get():  # Se o destinatário for o remetente
-
+                    
                     msg_list.insert(tkinter.END, "Remetente: " + msg_split[0])  # Insere a mensagem na lista
-                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime
-                                    + " " + msg_split[2])  # Insere a mensagem na lista
+                    msg_list.insert(tkinter.END, "Mensagem: " + getDatetime + " " + msg_split[2])  # Insere a mensagem na lista
                     msg_list.insert(tkinter.END, " ")  # Insere uma linha em branco na lista
 
             if len(msg_split) == 1:  # Se a mensagem tiver apenas uma parte
@@ -49,7 +49,6 @@ def send():
         mensagem.set("")  # limpa o campo de mensagem
         client_socket.send(bytes(msg, "utf8"))  # envia a mensagem
 
-
 def send_file():
     """Envia arquivo"""
     file_path = filedialog.askopenfilename()
@@ -67,7 +66,7 @@ def send_file():
 
 def receive_file():
     """Recebe arquivo"""
-    file_name = client_socket.recv(1024).decode("utf8")  # Recebe o nome do arquivo
+    file_name = filedialog.asksaveasfile() # Pega o nome do arquivo
     file_size = client_socket.recv(1024).decode("utf8")  # Recebe o tamanho do arquivo
     file_size = int(file_size)  # Converte o tamanho do arquivo para inteiro
     with open(file_name, "wb") as f:  # Abre o arquivo para escrita
@@ -78,6 +77,7 @@ def receive_file():
         f.write(bytes_read)  # Escreve os bytes no arquivo
         file_size -= len(bytes_read)  # Diminui o tamanho do arquivo
     client_socket.send(bytes("@", "utf8"))  # Envia um sinal de encerramento
+    
 
 
 def exit():
@@ -92,6 +92,11 @@ def fecha():
     """Essa funcão é chamada quando a janela é fechada"""
     mensagem.set("quit")  # Envia a mensagem de encerramento
     send()  # Envia a mensagem de encerramento
+
+
+def delete_chat():
+    """Apaga o chat"""
+    msg_list.delete(0, tkinter.END)  # Apaga a lista de mensagens
 
 
 window = tkinter.Tk()  # Cria a janela
@@ -156,8 +161,8 @@ e_remetente = tkinter.Entry(
     fg="#483659",
     textvariable=remetente
 )  # criando o campo do remetente
+e_remetente.bind("<Return>", set_name)  # evento do enter
 
-e_remetente.bind("<Return>", )  # evento do enter
 e_destinatario = tkinter.Entry(
     window,
     font="Ubuntu 12 bold",
@@ -165,7 +170,7 @@ e_destinatario = tkinter.Entry(
     textvariable=destinatario
 )  # criando o campo do destinatário
 
-e_destinatario.bind("<Return>", )  # evento do enter
+
 e_mensagem = tkinter.Entry(
     window,
     font="Ubuntu 12 bold",
@@ -173,8 +178,8 @@ e_mensagem = tkinter.Entry(
     width=65,
     textvariable=mensagem
 )  # criando o campo da mensagem
+e_mensagem.bind("<Return>", send)  # quando aperta enter, envia a mensagem
 
-e_mensagem.bind("<Return>", )  # evento do enter
 window.protocol("WM_DELETE_WINDOW", fecha)  # evento de fechar a janela
 
 b_enviar_remetente = tkinter.Button(
@@ -228,7 +233,7 @@ b_limpar_conversa = tkinter.Button(
     border=3,
     relief="groove",
     fg="#483659",
-    command=msg_list.delete(0, tkinter.END)
+    command=delete_chat
 )  # criando o botão de limpar a conversa
 
 scrollbar.grid()  # posiciona a barra de rolagem
